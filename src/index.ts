@@ -1,4 +1,4 @@
-import hello from "./tts-queue";
+import { TTS, TTSManager } from "./tts-queue";
 
-export { hello };
-export default hello;
+export { TTS, TTSManager };
+
