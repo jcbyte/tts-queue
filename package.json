@@ -1,0 +1,36 @@
+{
+	"name": "@jcbyte/tts-queue",
+	"version": "1.0.0",
+	"description": "Provides a wrapper for the Web API SpeechSynthesis methods to handle them more easily.",
+	"keywords": [
+		"tts",
+		"speech",
+		"SpeechSynthesis"
+	],
+	"homepage": "https://github.com/jcbyte/tts-queue#readme",
+	"bugs": {
+		"url": "https://github.com/jcbyte/tts-queue/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/jcbyte/tts-queue.git"
+	},
+	"license": "Apache-2.0",
+	"author": "Joel Cutler",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"scripts": {
+    "dev": "tsc --watch",
+		"build": "tsc",
+		"prepare": "npm run build",
+		"publish:npm": "npm publish --registry=https://registry.npmjs.org --access public",
+		"publish:github": "npm publish --registry=https://npm.pkg.github.com --access public",
+		"publish:all": "npm run publish:npm && npm run publish:github"
+	},
+	"dependencies": {
+		"uuid": "^11.1.0"
+	},
+	"devDependencies": {
+		"typescript": "~5.6.2"
+	}
+}
