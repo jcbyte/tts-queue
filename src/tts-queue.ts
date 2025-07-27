@@ -2,10 +2,8 @@ import { v4 } from "uuid";
 
 const _internal = Symbol("TTSManagerInternal");
 
-type TTSState = "idle" | "pending" | "playing" | "paused" | "cancelled" | "completed";
+type TTSState = "idle" | "queued" | "playing" | "paused" | "cancelled" | "completed";
 
-// todo update states
-// todo call callbacks
 // todo cancellation
 
 export class TTS {
@@ -24,6 +22,31 @@ export class TTS {
 
 	private [_internal] = {
 		getId: () => this.id,
+
+		isQueued: () => {
+			this._state = "queued";
+			this.onQueued?.();
+		},
+		isPlaying: () => {
+			this._state = "playing";
+			this.onPlaying?.();
+		},
+		isPaused: () => {
+			this._state = "paused";
+			this.onPaused?.();
+		},
+		isResumed: () => {
+			this._state = "playing";
+			this.onResumed?.();
+		},
+		isCancelled: () => {
+			this._state = "cancelled";
+			this.onCancelled?.();
+		},
+		isCompleted: () => {
+			this._state = "completed";
+			this.onCompleted?.();
+		},
 	};
 
 	public get state(): TTSState {
@@ -41,6 +64,7 @@ export class TTSManager {
 
 	public static enqueue(tts: TTS) {
 		this.ttsQueue.push(tts);
+		tts[_internal].isQueued();
 
 		if (this.ttsQueue.length === 1) {
 			this.playNext();
@@ -51,7 +75,11 @@ export class TTSManager {
 		const ttsIdx = this.ttsQueue.findIndex((t) => t[_internal].getId() === tts[_internal].getId());
 
 		if (ttsIdx >= 0) {
-			// todo cancel playing if it is that one
+			tts[_internal].isCancelled();
+
+			if (ttsIdx === 0) {
+				// todo cancel playing if it is that one
+			}
 			this.ttsQueue.splice(ttsIdx, 1);
 		}
 	}
@@ -61,11 +89,21 @@ export class TTSManager {
 	}
 
 	public static pause() {
-		speechSynthesis.pause();
+		const tts = this.getThisTts();
+
+		if (tts) {
+			speechSynthesis.pause();
+			tts[_internal].isPaused();
+		}
 	}
 
 	public static resume() {
-		speechSynthesis.resume();
+		const tts = this.getThisTts();
+
+		if (tts) {
+			speechSynthesis.resume();
+			tts[_internal].isResumed();
+		}
 	}
 
 	private static getThisTts(): TTS | null {
@@ -87,10 +125,13 @@ export class TTSManager {
 	}
 
 	private static async playNext() {
-    const tts = this.getThisTts();
+		const tts = this.getThisTts();
 		if (tts) {
+      tts[_internal].isPlaying();
 			await this.playUtterance(tts.utterance);
+
 			this.ttsQueue.splice(0, 1);
+			tts[_internal].isCompleted();
 
 			this.playNext();
 		}
