@@ -6,7 +6,6 @@ type TTSState = "idle" | "pending" | "playing" | "paused" | "cancelled" | "compl
 
 // todo update states
 // todo call callbacks
-// todo pause/resume
 // todo cancellation
 
 export class TTS {
@@ -23,28 +22,9 @@ export class TTS {
 	onCancelled?: () => void;
 	onCompleted?: () => void;
 
-	// private [_internal] = {
-	// 	getId: () => this.id,
-
-	// 	play: async () => {
-	// 		return new Promise<void>((resolve, reject) => {
-	// 			this.utterance.onend = () => {
-	// 				this.onCompleted?.();
-	// 				resolve();
-	// 			};
-
-	// 			speechSynthesis.speak(this.utterance);
-	// 		});
-	// 	},
-
-	// 	pause: () => {
-	// 		this.onPaused?.();
-	// 		speechSynthesis.pause();
-	// 	},
-
-	// 	cancel: () => {},
-	// 	resume: () => {},
-	// };
+	private [_internal] = {
+		getId: () => this.id,
+	};
 
 	public get state(): TTSState {
 		return this._state;
@@ -60,29 +40,41 @@ export class TTSManager {
 	private static ttsQueue: TTS[] = [];
 
 	public static enqueue(tts: TTS) {
-    this.ttsQueue.push(tts);
+		this.ttsQueue.push(tts);
 
-    if (this.ttsQueue.length === 1)
-    {
-      this.playNext();
-    }
-  }
+		if (this.ttsQueue.length === 1) {
+			this.playNext();
+		}
+	}
 
 	public static cancel(tts: TTS) {
-    // todo
-  }
+		const ttsIdx = this.ttsQueue.findIndex((t) => t[_internal].getId() === tts[_internal].getId());
+
+		if (ttsIdx >= 0) {
+			// todo cancel playing if it is that one
+			this.ttsQueue.splice(ttsIdx, 1);
+		}
+	}
 
 	public static cancelAll() {
-    // todo
-  }
+		// todo
+	}
 
 	public static pause() {
-    // todo
-  }
+		speechSynthesis.pause();
+	}
 
 	public static resume() {
-    // todo
-  }
+		speechSynthesis.resume();
+	}
+
+	private static getThisTts(): TTS | null {
+		if (this.ttsQueue.length <= 0) {
+			return null;
+		}
+
+		return this.ttsQueue[0];
+	}
 
 	private static async playUtterance(utterance: SpeechSynthesisUtterance) {
 		return new Promise<void>((resolve, reject) => {
@@ -95,13 +87,12 @@ export class TTSManager {
 	}
 
 	private static async playNext() {
-		if (this.ttsQueue.length > 0) {
-			const tts = this.ttsQueue[0];
-
+    const tts = this.getThisTts();
+		if (tts) {
 			await this.playUtterance(tts.utterance);
-      this.ttsQueue.splice(0, 1);
+			this.ttsQueue.splice(0, 1);
 
-      this.playNext();
+			this.playNext();
 		}
 	}
 }
