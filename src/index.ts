@@ -1,4 +1,5 @@
-import { TTS, TTSManager } from "./tts-queue";
+import { TTS, TTSState } from "./TTS";
+import { TTSManager, UtteranceConfig } from "./TTSManager";
 
-export { TTS, TTSManager };
+export { TTS, TTSManager, TTSState, UtteranceConfig };
 
