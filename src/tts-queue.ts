@@ -4,7 +4,7 @@ const _internal = Symbol("TTSManagerInternal");
 
 type TTSState = "idle" | "queued" | "playing" | "paused" | "cancelled" | "completed";
 
-// todo cancellation
+// todo default utterance properties?
 
 export class TTS {
 	private id: string;
@@ -61,6 +61,7 @@ export class TTS {
 
 export class TTSManager {
 	private static ttsQueue: TTS[] = [];
+	private static cancelController: AbortController = new AbortController();
 
 	public static enqueue(tts: TTS) {
 		this.ttsQueue.push(tts);
@@ -78,14 +79,21 @@ export class TTSManager {
 			tts[_internal].isCancelled();
 
 			if (ttsIdx === 0) {
-				// todo cancel playing if it is that one
+        this.cancelController.abort();
+        speechSynthesis.cancel();
 			}
 			this.ttsQueue.splice(ttsIdx, 1);
 		}
 	}
 
 	public static cancelAll() {
-		// todo
+		const oldQueue = this.ttsQueue.splice(0);
+
+    oldQueue.forEach(tts => tts[_internal].isCancelled());
+
+    this.cancelController.abort();
+    speechSynthesis.cancel();
+
 	}
 
 	public static pause() {
@@ -116,6 +124,11 @@ export class TTSManager {
 
 	private static async playUtterance(utterance: SpeechSynthesisUtterance) {
 		return new Promise<void>((resolve, reject) => {
+      this.cancelController = new AbortController();
+			this.cancelController.signal.onabort = () => {
+				reject();
+			};
+
 			utterance.onend = () => {
 				resolve();
 			};
@@ -127,11 +140,16 @@ export class TTSManager {
 	private static async playNext() {
 		const tts = this.getThisTts();
 		if (tts) {
-      tts[_internal].isPlaying();
-			await this.playUtterance(tts.utterance);
+			tts[_internal].isPlaying();
+			try {
+				await this.playUtterance(tts.utterance);
 
-			this.ttsQueue.splice(0, 1);
-			tts[_internal].isCompleted();
+				this.ttsQueue.splice(0, 1);
+				tts[_internal].isCompleted();
+			} catch {
+				// Cancelled during playback
+        // This would have already removed it from the queue
+			}
 
 			this.playNext();
 		}
