@@ -1,6 +1,6 @@
 # tts-queue
 
-Provides a wrapper for the Web API SpeechSynthesis methods to handle them more easily.
+A lightweight wrapper for the Web Speech API's SpeechSynthesis, enabling easy queuing and management of text-to-speech utterances.
 
 ## Installation
 
@@ -57,18 +57,17 @@ You can set or update the global utterance configuration (e.g., language, pitch,
 
 ```ts
 TTSManager.updateConfig({
-  lang: "en-US",
-  pitch: 1.2,
-  rate: 1,
-  volume: 0.8,
-  // voice: yourSpeechSynthesisVoiceInstance
+	lang: "en-US",
+	pitch: 1.2,
+	rate: 1,
+	volume: 0.8,
+	// voice: SpeechSynthesisVoice
 });
 ```
 
 All future TTS instances created will use these settings unless overridden individually.
 
-You can access the underlying `SpeechSynthesisUtterance` if you need low-level control via 
-`tts.utterance`
+You can access the underlying `SpeechSynthesisUtterance` if you need low-level control via `tts.utterance`.
 
 ### Creating Multiple TTS instances
 
