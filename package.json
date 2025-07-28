@@ -1,6 +1,6 @@
 {
 	"name": "@jcbyte/tts-queue",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "A lightweight wrapper for the Web Speech API's SpeechSynthesis, enabling easy queuing and management of text-to-speech utterances.",
 	"keywords": [
 		"tts",
